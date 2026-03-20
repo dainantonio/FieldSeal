@@ -25,7 +25,7 @@ import {
 const US_STATES = [
   { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" }, 
   { name: "Arkansas", abbr: "AR" }, { name: "California", abbr: "CA" }, { name: "Colorado", abbr: "CO" }, 
-  { name: "Connecticut", abbr: "CT" }, { name: "Delaware", abbr: "DE" }, { name: "Florida", abbr: "FL" }, 
+  { name: "Connecticut", abbr: "CT" }, { name: "Delaware", abbr: "DE" }, { name: "District of Columbia", abbr: "DC" }, { name: "Florida", abbr: "FL" }, 
   { name: "Georgia", abbr: "GA" }, { name: "Hawaii", abbr: "HI" }, { name: "Idaho", abbr: "ID" }, 
   { name: "Illinois", abbr: "IL" }, { name: "Indiana", abbr: "IN" }, { name: "Iowa", abbr: "IA" }, 
   { name: "Kansas", abbr: "KS" }, { name: "Kentucky", abbr: "KY" }, { name: "Louisiana", abbr: "LA" }, 
@@ -206,9 +206,9 @@ export default function NotaryAnalyst() {
         <div className="space-y-6">
           <div className="glass-card p-2 flex flex-col gap-2">
             {/* State Selector */}
-            <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-xl border border-gray-100">
-              <div className="flex-shrink-0 w-8 h-8 bg-white rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
-                <MapPin size={16} />
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex-shrink-0 w-10 h-10 bg-white rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
+                <MapPin size={18} />
               </div>
               <div className="flex-1 relative">
                 <select 
@@ -216,15 +216,15 @@ export default function NotaryAnalyst() {
                   onChange={(e) => {
                     if (e.target.value) toggleState(e.target.value);
                   }}
-                  className="w-full bg-transparent py-2 pr-8 text-sm font-bold text-gray-900 focus:outline-none appearance-none cursor-pointer"
+                  className="w-full bg-transparent py-2 px-4 pr-10 text-sm font-bold text-gray-900 focus:outline-none appearance-none cursor-pointer"
                 >
                   <option value="">Select US States...</option>
                   {US_STATES.filter(s => !selectedStates.includes(s.name)).map(state => (
                     <option key={state.abbr} value={state.name}>{state.name}</option>
                   ))}
                 </select>
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                  <ChevronRight size={14} className="rotate-90" />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                  <ChevronRight size={16} className="rotate-90" />
                 </div>
               </div>
               {selectedStates.length > 0 && (
