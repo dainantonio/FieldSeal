@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import CollapsibleMarkdown from './CollapsibleMarkdown';
 import { 
   FileText, 
   Search, 
@@ -408,7 +409,7 @@ export default function NotaryAnalyst() {
                 </div>
                 
                 <div className="markdown-body prose prose-indigo prose-sm max-w-none">
-                  <ReactMarkdown>{answer}</ReactMarkdown>
+                  <CollapsibleMarkdown content={answer} />
                 </div>
               </div>
 
