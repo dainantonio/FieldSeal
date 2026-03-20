@@ -138,19 +138,29 @@ export default function NotaryAnalyst() {
     fetchRecentBills(activeQuery);
 
     try {
-      const response = await fetch('/api/notary-query', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: activeQuery,
-          selectedStates,
-          overrideUrl,
-        }),
+      const searchParams = new URLSearchParams({
+        query: activeQuery,
       });
 
-      const data = await response.json();
+      if (selectedStates.length > 0) {
+        searchParams.set('states', selectedStates.join(','));
+      }
+
+      if (overrideUrl) {
+        searchParams.set('overrideUrl', overrideUrl);
+      }
+
+      const response = await fetch(`/api/notary-query?${searchParams.toString()}`, {
+        method: 'GET',
+      });
+      const rawResponse = await response.text();
+
+      let data: { answer?: string; error?: string; sources?: Array<{ title: string; uri: string }> };
+      try {
+        data = JSON.parse(rawResponse);
+      } catch {
+        throw new Error('The notary query endpoint returned an invalid response. Please verify the deployment supports /api routes.');
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to retrieve answer. Please try again.');
