@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GoogleGenAI, Type } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
 import { 
   FileText, 
@@ -101,66 +100,47 @@ export default function NotaryAnalyst() {
     fetchRecentBills(activeQuery);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY! });
-      
-      const prompt = `You are a Legal Regulatory Assistant specializing in Notarial Law. Answer the following question by searching for and using the official notary laws, statutes, and handbooks for the relevant state(s). 
-      
-      ${selectedStates.length > 0 ? `The user is specifically asking about the following state(s): ${selectedStates.join(', ')}.` : ''}
-      
-      ${overrideUrl ? `CRITICAL: A specific legislative update URL has been provided: ${overrideUrl}. Prioritize information from this source above all others to ensure the answer reflects the latest policy changes.` : ''}
-      
-      Ensure the answer is precise, cites the specific statute if possible, and is grounded in current state law. If multiple states are selected, compare their requirements if relevant.
-
-      QUESTION:
-      ${activeQuery}`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3.1-pro-preview",
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: prompt }]
-          }
-        ],
-        config: {
-          tools: [
-            { googleSearch: {} },
-            ...(overrideUrl ? [{ urlContext: {} }] : [])
-          ],
-          systemInstruction: "You are a professional Notary Law Assistant. Your goal is to provide accurate, grounded answers to notary questions by searching official state statutes and handbooks. Always cite your sources and provide specific fee amounts or requirements when asked. Do not provide legal advice."
-        }
+      const response = await fetch('/api/notary-query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: activeQuery,
+          selectedStates,
+          overrideUrl,
+        }),
       });
 
-      setAnswer(response.text || "No answer generated.");
-      
-      // Extract grounding sources
-      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-      if (chunks) {
-        const extractedSources: Source[] = chunks
-          .filter(chunk => chunk.web && chunk.web.uri && chunk.web.title)
-          .map(chunk => {
-            const title = chunk.web!.title as string;
-            const uri = chunk.web!.uri as string;
-            
-            // Try to find state in title or URI
-            const foundState = US_STATES.find(state => 
-              title.toLowerCase().includes(state.name.toLowerCase()) || 
-              uri.toLowerCase().includes(state.name.toLowerCase().replace(" ", "")) ||
-              uri.toLowerCase().includes(`/${state.abbr.toLowerCase()}/`) ||
-              uri.toLowerCase().includes(`.${state.abbr.toLowerCase()}.gov`)
-            );
+      const data = await response.json();
 
-            return {
-              uri,
-              title,
-              state: foundState ? foundState.name : "General / Federal"
-            };
-          });
-        setSources(extractedSources);
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to retrieve answer. Please try again.');
       }
+
+      setAnswer(data.answer || 'No answer generated.');
+
+      const extractedSources: Source[] = (data.sources || []).map((source: { title: string; uri: string }) => {
+        const title = source.title;
+        const uri = source.uri;
+        const foundState = US_STATES.find(state =>
+          title.toLowerCase().includes(state.name.toLowerCase()) ||
+          uri.toLowerCase().includes(state.name.toLowerCase().replace(' ', '')) ||
+          uri.toLowerCase().includes(`/${state.abbr.toLowerCase()}/`) ||
+          uri.toLowerCase().includes(`.${state.abbr.toLowerCase()}.gov`)
+        );
+
+        return {
+          uri,
+          title,
+          state: foundState ? foundState.name : 'General / Federal',
+        };
+      });
+
+      setSources(extractedSources);
     } catch (err: any) {
       console.error(err);
-      setAnswer("Failed to retrieve answer. Please try again.");
+      setAnswer(err.message || 'Failed to retrieve answer. Please try again.');
     } finally {
       setIsQuerying(false);
     }
