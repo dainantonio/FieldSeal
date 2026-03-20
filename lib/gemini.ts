@@ -94,6 +94,12 @@ function getStateResources(state: string): Array<{ title: string; uri: string }>
         uri: 'https://codes.ohio.gov/ohio-revised-code/chapter-147',
       },
     ],
+    'West Virginia': [
+      {
+        title: 'West Virginia Code - Revised Uniform Law on Notarial Acts',
+        uri: 'https://code.wvlegislature.gov/39-4/',
+      },
+    ],
   };
 
   return stateResourceMap[state] || [];
