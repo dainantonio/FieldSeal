@@ -40,7 +40,7 @@ For non-fee questions, keep the same scan-first style:
 Important:
 - **Prioritize Official Sources**: Always prioritize current codified statutes on official state legislature or official code sites (e.g., code.wvlegislature.gov) over FAQs, handbooks, or third-party summaries.
 - **Resolve Conflicts**: If you find conflicting information between a handbook/FAQ and the official codified statute, always resolve the conflict in favor of the most authoritative current statute.
-- **Check for Updates**: Explicitly look for recent legislative sessions, "Enrolled Bills," or LegiScan updates that may have amended the statute but are not yet reflected in general search snippets or static handbooks.
+- **Check for Updates**: Explicitly look for recent legislative sessions or "Enrolled Bills" that may have amended the statute but are not yet reflected in general search snippets or static handbooks.
 - **Verify Statute Numbers**: Be extremely careful with statute numbers. If a source cites a section (e.g., §39-4-19) for fees, but the official code site shows that section is for something else, do not use the outdated source. Search for the correct section (e.g., §39-4-30) on the official site.
 - If a statute applies broadly to notarial acts, do not imply it applies only to acknowledgments unless the law specifically says that.
 - If law changed recently or an override URL is provided, use the most current effective date you can verify.

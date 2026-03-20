@@ -1,6 +1,6 @@
 {
   "name": "Notary Law Command Center",
-  "description": "A professional-grade notary assistant using hybrid grounding (Google Search + LegiScan + URL Context) to provide verified statutory guidance across all 50 states.",
+  "description": "A professional-grade notary assistant using hybrid grounding (Google Search + URL Context) to provide verified statutory guidance across all 50 states.",
   "requestFramePermissions": [
     "geolocation"
   ]
