@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GoogleGenAI, Type } from "@google/genai";
 import ReactMarkdown from 'react-markdown';
 import { 
   FileText, 
@@ -53,8 +52,6 @@ export default function NotaryAnalyst() {
   const [isQuerying, setIsQuerying] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
   const [sources, setSources] = useState<Source[]>([]);
-  const [recentBills, setRecentBills] = useState<any[]>([]);
-  const [isFetchingBills, setIsFetchingBills] = useState(false);
   
   const suggestedQueries = [
     "What is the fee for an acknowledgment in Ohio?",
@@ -97,95 +94,61 @@ export default function NotaryAnalyst() {
     setIsQuerying(true);
     setAnswer(null);
     setSources([]);
-    // Optionally fetch bills related to the state if detected
-    fetchRecentBills(activeQuery);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY! });
-      
-      const prompt = `You are a Legal Regulatory Assistant specializing in Notarial Law. Answer the following question by searching for and using the official notary laws, statutes, and handbooks for the relevant state(s). 
-      
-      ${selectedStates.length > 0 ? `The user is specifically asking about the following state(s): ${selectedStates.join(', ')}.` : ''}
-      
-      ${overrideUrl ? `CRITICAL: A specific legislative update URL has been provided: ${overrideUrl}. Prioritize information from this source above all others to ensure the answer reflects the latest policy changes.` : ''}
-      
-      Ensure the answer is precise, cites the specific statute if possible, and is grounded in current state law. If multiple states are selected, compare their requirements if relevant.
-
-      QUESTION:
-      ${activeQuery}`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3.1-pro-preview",
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: prompt }]
-          }
-        ],
-        config: {
-          tools: [
-            { googleSearch: {} },
-            ...(overrideUrl ? [{ urlContext: {} }] : [])
-          ],
-          systemInstruction: "You are a professional Notary Law Assistant. Your goal is to provide accurate, grounded answers to notary questions by searching official state statutes and handbooks. Always cite your sources and provide specific fee amounts or requirements when asked. Do not provide legal advice."
-        }
+      const searchParams = new URLSearchParams({
+        query: activeQuery,
       });
 
-      setAnswer(response.text || "No answer generated.");
-      
-      // Extract grounding sources
-      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-      if (chunks) {
-        const extractedSources: Source[] = chunks
-          .filter(chunk => chunk.web && chunk.web.uri && chunk.web.title)
-          .map(chunk => {
-            const title = chunk.web!.title as string;
-            const uri = chunk.web!.uri as string;
-            
-            // Try to find state in title or URI
-            const foundState = US_STATES.find(state => 
-              title.toLowerCase().includes(state.name.toLowerCase()) || 
-              uri.toLowerCase().includes(state.name.toLowerCase().replace(" ", "")) ||
-              uri.toLowerCase().includes(`/${state.abbr.toLowerCase()}/`) ||
-              uri.toLowerCase().includes(`.${state.abbr.toLowerCase()}.gov`)
-            );
-
-            return {
-              uri,
-              title,
-              state: foundState ? foundState.name : "General / Federal"
-            };
-          });
-        setSources(extractedSources);
+      if (selectedStates.length > 0) {
+        searchParams.set('states', selectedStates.join(','));
       }
+
+      if (overrideUrl) {
+        searchParams.set('overrideUrl', overrideUrl);
+      }
+
+      const response = await fetch(`/api/notary-query?${searchParams.toString()}`, {
+        method: 'GET',
+      });
+      const rawResponse = await response.text();
+
+      let data: { answer?: string; error?: string; sources?: Array<{ title: string; uri: string }> };
+      try {
+        data = JSON.parse(rawResponse);
+      } catch {
+        throw new Error('The notary query endpoint returned an invalid response. Please verify the deployment supports /api routes.');
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to retrieve answer. Please try again.');
+      }
+
+      setAnswer(data.answer || 'No answer generated.');
+
+      const extractedSources: Source[] = (data.sources || []).map((source: { title: string; uri: string }) => {
+        const title = source.title;
+        const uri = source.uri;
+        const foundState = US_STATES.find(state =>
+          title.toLowerCase().includes(state.name.toLowerCase()) ||
+          uri.toLowerCase().includes(state.name.toLowerCase().replace(' ', '')) ||
+          uri.toLowerCase().includes(`/${state.abbr.toLowerCase()}/`) ||
+          uri.toLowerCase().includes(`.${state.abbr.toLowerCase()}.gov`)
+        );
+
+        return {
+          uri,
+          title,
+          state: foundState ? foundState.name : 'General / Federal',
+        };
+      });
+
+      setSources(extractedSources);
     } catch (err: any) {
       console.error(err);
-      setAnswer("Failed to retrieve answer. Please try again.");
+      setAnswer(err.message || 'Failed to retrieve answer. Please try again.');
     } finally {
       setIsQuerying(false);
-    }
-  };
-
-  const fetchRecentBills = async (text: string) => {
-    const foundState = US_STATES.find(s => text.toLowerCase().includes(s.name.toLowerCase()));
-    if (!foundState) return;
-
-    setIsFetchingBills(true);
-    try {
-      // This is where LegiScan API would be called. 
-      // We'll simulate a targeted search for "notary" or "notarial" legislation.
-      // In a real implementation, you'd fetch from a server-side route that uses process.env.LEGISCAN_API_KEY
-      // with a query parameter like ?q=notary
-      setTimeout(() => {
-        setRecentBills([
-          { id: 'SB123', title: 'Notary Public Modernization Act', status: 'In Committee', state: foundState.name, date: '2026-03-15' },
-          { id: 'HB456', title: 'Remote Online Notarization (RON) Standards', status: 'Passed House', state: foundState.name, date: '2026-03-10' }
-        ]);
-        setIsFetchingBills(false);
-      }, 1500);
-    } catch (err) {
-      console.error(err);
-      setIsFetchingBills(false);
     }
   };
 
@@ -347,6 +310,11 @@ export default function NotaryAnalyst() {
                   {urlError}
                 </p>
               )}
+              {!urlError && (
+                <p className="px-4 text-[10px] font-medium text-indigo-500 tracking-tight">
+                  Tip: paste the exact statute or bill URL if you want the answer pinned to a recent legislative update.
+                </p>
+              )}
             </div>
           </div>
 
@@ -402,43 +370,6 @@ export default function NotaryAnalyst() {
               {/* Sources Section */}
               {sources.length > 0 && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
-                  {/* Recent Bills Feed (LegiScan Integration) */}
-                  {recentBills.length > 0 && (
-                    <div className="bg-indigo-900 text-white rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-900/20 space-y-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-indigo-800 rounded-xl flex items-center justify-center">
-                            <Search size={18} className="text-indigo-300" />
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-bold tracking-tight">Notary Legislative Monitor</h3>
-                            <p className="text-[10px] text-indigo-300 font-mono uppercase tracking-widest">Tracking Notarial Policy via LegiScan</p>
-                          </div>
-                        </div>
-                        <div className="px-3 py-1 bg-indigo-800 rounded-full text-[9px] font-bold uppercase tracking-widest text-indigo-300 border border-indigo-700">
-                          Live Tracking Active
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        {recentBills.map((bill, i) => (
-                          <div key={i} className="flex items-center justify-between p-4 bg-indigo-800/50 rounded-2xl border border-indigo-700/50 group hover:bg-indigo-800 transition-colors">
-                            <div className="flex items-center gap-4">
-                              <div className="text-[10px] font-mono font-bold text-indigo-400">{bill.id}</div>
-                              <div>
-                                <p className="text-xs font-bold text-indigo-100">{bill.title}</p>
-                                <p className="text-[10px] text-indigo-400">{bill.state} • {bill.date}</p>
-                              </div>
-                            </div>
-                            <div className="px-2 py-1 bg-indigo-900/50 rounded-md text-[8px] font-bold uppercase tracking-tighter text-emerald-400 border border-emerald-900/50">
-                              {bill.status}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   <div className="flex items-center gap-4 px-4">
                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
