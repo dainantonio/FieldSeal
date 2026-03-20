@@ -138,33 +138,18 @@ export default function NotaryAnalyst() {
     fetchRecentBills(activeQuery);
 
     try {
-      const searchParams = new URLSearchParams({
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is not configured in environment variables.');
+      }
+
+      const { queryGemini } = await import('@/lib/gemini');
+      const data = await queryGemini({
         query: activeQuery,
+        selectedStates,
+        overrideUrl: overrideUrl || undefined,
+        apiKey,
       });
-
-      if (selectedStates.length > 0) {
-        searchParams.set('states', selectedStates.join(','));
-      }
-
-      if (overrideUrl) {
-        searchParams.set('overrideUrl', overrideUrl);
-      }
-
-      const response = await fetch(`/api/notary-query?${searchParams.toString()}`, {
-        method: 'GET',
-      });
-      const rawResponse = await response.text();
-
-      let data: { answer?: string; error?: string; sources?: Array<{ title: string; uri: string }> };
-      try {
-        data = JSON.parse(rawResponse);
-      } catch {
-        throw new Error('The notary query endpoint returned an invalid response. Please verify the deployment supports /api routes.');
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to retrieve answer. Please try again.');
-      }
 
       setAnswer(data.answer || 'No answer generated.');
 
