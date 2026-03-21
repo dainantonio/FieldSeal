@@ -114,13 +114,16 @@ export const TableRow = ({ children, isHeader }: { children: React.ReactNode; is
   );
 };
 
-export const TableHead = ({ children }: { children: React.ReactNode }) => (
-  <th className="px-6 py-4 text-sm font-bold text-white uppercase tracking-wider first:rounded-tl-none last:rounded-tr-none">
-    <div className="flex items-center justify-between">
+export const TableHead = ({ children }: { children: React.ReactNode }) => {
+  const text = String(children).toLowerCase();
+  const isRight = text.includes('fee') || text.includes('rate') || text.includes('price') || text.includes('amount');
+  
+  return (
+    <th className={`px-6 py-4 text-sm font-bold text-white uppercase tracking-wider ${isRight ? 'text-right' : 'text-left'}`}>
       {children}
-    </div>
-  </th>
-);
+    </th>
+  );
+};
 
 export const TableCell = ({ children, isPrice }: { children: React.ReactNode; isPrice?: boolean }) => (
   <td className={`px-6 py-5 text-sm ${isPrice ? 'text-right font-bold text-gray-900' : 'text-gray-700 font-medium'} leading-relaxed`}>
