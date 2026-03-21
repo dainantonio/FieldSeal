@@ -19,8 +19,10 @@ import {
   CheckCircle2,
   Sparkles,
   ArrowRight,
-  Info
+  Info,
+  Lock
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const US_STATES = [
   { name: "Alabama", abbr: "AL" }, { name: "Alaska", abbr: "AK" }, { name: "Arizona", abbr: "AZ" }, 
@@ -163,52 +165,74 @@ export default function NotaryAnalyst() {
     : sources;
 
   return (
-    <div className="min-h-screen bg-[#fdfdfc] flex flex-col font-sans text-[#1a1a1a]">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
-            <Scale size={20} />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-gray-900">FieldSeal</h1>
-            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Notary Law Command Center</p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#fafaf8] via-[#fcfbf9] to-[#f8f7f5] flex flex-col font-sans text-[#0f0f0f]">
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 border-b border-white/40 backdrop-blur-md bg-white/30">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <motion.div 
+            className="flex items-center gap-3"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="w-11 h-11 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center text-white shadow-lg">
+              <Scale size={22} strokeWidth={1.5} />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight text-gray-900">FieldSeal</h1>
+              <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Notary Law Command Center</p>
+            </div>
+          </motion.div>
+          
+          <motion.button 
+            onClick={clearAll}
+            className="text-xs font-bold uppercase text-gray-400 hover:text-blue-600 transition-colors tracking-widest px-4 py-2 rounded-lg hover:bg-white/50"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            [ Reset ]
+          </motion.button>
         </div>
-        
-        <button 
-          onClick={clearAll}
-          className="text-[10px] font-bold uppercase text-gray-400 hover:text-indigo-600 transition-colors tracking-widest"
-        >
-          [ Reset Workspace ]
-        </button>
       </header>
 
-      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full p-4 md:p-12 gap-12">
+      <main className="flex-1 flex flex-col max-w-5xl mx-auto w-full p-6 md:p-16 gap-12">
         {/* Hero Section */}
         {!answer && !isQuerying && (
-          <div className="py-12 text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full text-indigo-600 text-xs font-bold uppercase tracking-widest">
+          <motion.div 
+            className="py-12 text-center space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.div 
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full text-blue-600 text-xs font-bold uppercase tracking-widest border border-blue-100"
+              whileHover={{ scale: 1.05 }}
+            >
               <Sparkles size={14} />
               Grounded in Official Statutes
-            </div>
-            <h2 className="text-5xl font-bold tracking-tight text-gray-900 leading-tight">
+            </motion.div>
+            <h2 className="text-6xl font-bold tracking-tight text-gray-900 leading-tight">
               Professional Notary <br />
-              <span className="text-indigo-600">Statutory Guidance.</span>
+              <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">Statutory Guidance</span>
             </h2>
-            <p className="text-gray-500 max-w-lg mx-auto text-lg leading-relaxed">
-              Instant, verified answers for notaries in the field. Search across all 50 states with direct statutory citations.
+            <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed font-light">
+              Instant, verified answers for notaries in the field. Search across all 50 states with direct statutory citations and authoritative sources.
             </p>
-          </div>
+          </motion.div>
         )}
 
         {/* Search Interface */}
-        <div className="space-y-6">
-          <div className="glass-card p-2 flex flex-col gap-2">
+        <motion.div 
+          className="space-y-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="glass-card p-1 flex flex-col gap-1 border border-white/50">
             {/* State Selector */}
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-              <div className="flex-shrink-0 w-10 h-10 bg-white rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
-                <MapPin size={18} />
+            <div className="flex items-center gap-3 p-4 bg-white/40 rounded-xl border border-white/30">
+              <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                <MapPin size={18} strokeWidth={1.5} />
               </div>
               <div className="flex-1 relative">
                 <select 
@@ -216,7 +240,7 @@ export default function NotaryAnalyst() {
                   onChange={(e) => {
                     if (e.target.value) toggleState(e.target.value);
                   }}
-                  className="w-full bg-transparent py-2 px-4 pr-10 text-sm font-bold text-gray-900 focus:outline-none appearance-none cursor-pointer"
+                  className="w-full bg-transparent py-2 px-4 pr-10 text-sm font-semibold text-gray-900 focus:outline-none appearance-none cursor-pointer"
                 >
                   <option value="">Select US States...</option>
                   {US_STATES.filter(s => !selectedStates.includes(s.name)).map(state => (
@@ -228,16 +252,18 @@ export default function NotaryAnalyst() {
                 </div>
               </div>
               {selectedStates.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 max-w-[60%] overflow-hidden">
+                <div className="flex flex-wrap gap-2 max-w-[60%]">
                   {selectedStates.map(state => (
-                    <button
+                    <motion.button
                       key={state}
                       onClick={() => toggleState(state)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 text-gray-700 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:border-red-200 hover:text-red-600 transition-all group"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-blue-100 transition-all"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       {state}
-                      <span className="opacity-30 group-hover:opacity-100">×</span>
-                    </button>
+                      <span className="opacity-50 hover:opacity-100">×</span>
+                    </motion.button>
                   ))}
                 </div>
               )}
@@ -248,23 +274,25 @@ export default function NotaryAnalyst() {
               <input 
                 type="text"
                 placeholder="Ask a notary law question..."
-                className="w-full p-6 pr-16 bg-transparent text-xl font-medium focus:outline-none placeholder:text-gray-300"
+                className="w-full p-6 pr-16 bg-transparent text-lg font-medium focus:outline-none placeholder:text-gray-300"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleQuery()}
               />
-              <button 
+              <motion.button 
                 onClick={() => handleQuery()}
                 disabled={isQuerying || !query.trim()}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center disabled:opacity-20 transition-all hover:bg-indigo-700 active:scale-95 shadow-lg shadow-indigo-200"
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl flex items-center justify-center disabled:opacity-30 transition-all hover:shadow-lg active:scale-95"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
               >
                 {isQuerying ? <Loader2 size={20} className="animate-spin" /> : <ArrowRight size={20} />}
-              </button>
+              </motion.button>
             </div>
 
             {/* Legislative Override */}
-            <div className="flex items-center gap-3 px-4 py-3 border-t border-gray-50">
-              <Gavel size={14} className="text-gray-400" />
+            <div className="flex items-center gap-3 px-4 py-3 border-t border-white/20">
+              <Lock size={16} className="text-gray-400" />
               <input 
                 type="url"
                 placeholder="Optional: Override with specific legislative URL (.gov)"
@@ -275,57 +303,81 @@ export default function NotaryAnalyst() {
                   if (urlError) setUrlError(null);
                 }}
               />
-              {urlError && <span className="text-[10px] font-bold text-red-500 uppercase">{urlError}</span>}
+              {urlError && <span className="text-xs font-bold text-red-500">{urlError}</span>}
             </div>
           </div>
 
           {!answer && !isQuerying && (
-            <div className="flex flex-wrap gap-2 justify-center animate-in fade-in duration-1000 delay-300">
+            <motion.div 
+              className="flex flex-wrap gap-3 justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
               {filteredSuggestedQueries.map((q, i) => (
-                <button
+                <motion.button
                   key={i}
                   onClick={() => {
                     setQuery(q);
                     handleQuery(q);
                   }}
-                  className="px-4 py-2 bg-white rounded-full border border-gray-100 text-xs font-bold text-gray-500 hover:border-indigo-500 hover:text-indigo-600 transition-all shadow-sm"
+                  className="px-4 py-2.5 bg-white rounded-full border border-gray-200 text-xs font-semibold text-gray-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   {q}
-                </button>
+                </motion.button>
               ))}
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
         {/* Results Area */}
         <div className="flex-1 space-y-12 pb-24">
           {isQuerying && (
-            <div className="flex flex-col items-center justify-center py-20 gap-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-indigo-500/10 blur-2xl rounded-full animate-pulse"></div>
-                <Loader2 size={48} className="animate-spin text-indigo-600 relative" />
-              </div>
+            <motion.div 
+              className="flex flex-col items-center justify-center py-24 gap-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <motion.div 
+                className="relative"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full"></div>
+                <Loader2 size={48} className="text-blue-600 relative" />
+              </motion.div>
               <div className="text-center space-y-2">
                 <p className="text-lg font-bold text-gray-900">Analyzing Statutes</p>
-                <p className="text-xs text-gray-400 font-bold uppercase tracking-[0.2em]">Verifying current law for accuracy</p>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Verifying current law for accuracy</p>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {answer && (
-            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-              <div className="glass-card p-10 space-y-8">
-                <div className="flex items-center justify-between border-b border-gray-50 pb-6">
-                  <div className="flex items-center gap-3 text-indigo-600">
-                    <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
-                      <BookOpen size={16} />
+            <motion.div 
+              className="space-y-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="glass-card p-10 space-y-8 border border-white/50">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-6">
+                  <div className="flex items-center gap-3 text-blue-600">
+                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <BookOpen size={16} strokeWidth={1.5} />
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-[0.2em]">Statutory Guidance</span>
+                    <span className="text-xs font-bold uppercase tracking-widest">Statutory Guidance</span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full text-[10px] font-bold text-emerald-600 uppercase tracking-widest border border-emerald-100">
+                  <motion.div 
+                    className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full text-xs font-bold text-emerald-600 uppercase tracking-widest border border-emerald-100"
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                  >
                     <ShieldCheck size={12} />
                     Verified {new Date().toLocaleDateString()}
-                  </div>
+                  </motion.div>
                 </div>
                 
                 <div className="markdown-body">
@@ -335,55 +387,68 @@ export default function NotaryAnalyst() {
 
               {/* Sources Section */}
               {sources.length > 0 && (
-                <div className="space-y-8">
+                <motion.div 
+                  className="space-y-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
                   <div className="flex items-center gap-4 px-4">
-                    <div className="h-px flex-1 bg-gray-100"></div>
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">
+                    <div className="h-px flex-1 bg-gray-200"></div>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500">
                       Authoritative References
                     </h3>
-                    <div className="h-px flex-1 bg-gray-100"></div>
+                    <div className="h-px flex-1 bg-gray-200"></div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {filteredSources.map((source, i) => (
-                      <a 
+                      <motion.a 
                         key={i}
                         href={source.uri}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="glass-card p-5 flex items-start gap-4 hover:border-indigo-200 hover:shadow-md transition-all group"
+                        className="glass-card p-5 flex items-start gap-4 hover:border-blue-200 hover:shadow-lg transition-all group border border-white/50"
+                        whileHover={{ y: -4 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
                       >
-                        <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                          <ExternalLink size={18} />
+                        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-100 transition-colors">
+                          <ExternalLink size={18} strokeWidth={1.5} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">{source.state || 'General'}</span>
+                            <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">{source.state || 'General'}</span>
                           </div>
-                          <p className="text-sm font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{source.title}</p>
-                          <p className="text-[10px] text-gray-400 font-mono truncate mt-1">{source.uri}</p>
+                          <p className="text-sm font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">{source.title}</p>
+                          <p className="text-xs text-gray-400 font-mono truncate mt-1">{source.uri}</p>
                         </div>
-                      </a>
+                      </motion.a>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
           )}
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 bg-white py-8 px-6">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2 text-gray-400">
-            <Scale size={14} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">FieldSeal © 2026</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-indigo-600 transition-colors">Statutes</a>
-            <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-indigo-600 transition-colors">Compliance</a>
-            <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-indigo-600 transition-colors">Support</a>
+      {/* Premium Footer */}
+      <footer className="border-t border-white/40 bg-white/30 backdrop-blur-md py-8 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+          <motion.div 
+            className="flex items-center gap-2 text-gray-500"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <Scale size={14} strokeWidth={1.5} />
+            <span className="text-xs font-bold uppercase tracking-widest">FieldSeal © 2026</span>
+          </motion.div>
+          <div className="flex items-center gap-8">
+            <a href="#" className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-blue-600 transition-colors">Statutes</a>
+            <a href="#" className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-blue-600 transition-colors">Compliance</a>
+            <a href="#" className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-blue-600 transition-colors">Support</a>
           </div>
         </div>
       </footer>
