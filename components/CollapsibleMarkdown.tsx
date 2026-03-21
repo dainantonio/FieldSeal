@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import ProfessionalTable from './ProfessionalTable';
 
 interface CollapsibleMarkdownProps {
   content: string;
@@ -15,7 +16,17 @@ export default function CollapsibleMarkdown({ content }: CollapsibleMarkdownProp
   if (sections.length <= 1) {
     return (
       <div className="markdown-body prose prose-indigo prose-sm max-w-none">
-        <ReactMarkdown>{content}</ReactMarkdown>
+        <ReactMarkdown
+          components={{
+            table: ({ children }) => <ProfessionalTable>{children}</ProfessionalTable>,
+            thead: ({ children }) => <thead className="bg-gray-50/50">{children}</thead>,
+            th: ({ children }) => <th className="px-6 py-4 text-[11px] font-bold text-indigo-600 uppercase tracking-widest text-left">{children}</th>,
+            tr: ({ children }) => <tr className="group hover:bg-indigo-50/20 transition-colors border-b border-gray-100 last:border-0">{children}</tr>,
+            td: ({ children }) => <td className="px-6 py-4 text-sm text-gray-700 font-medium">{children}</td>,
+          }}
+        >
+          {content}
+        </ReactMarkdown>
       </div>
     );
   }
@@ -64,7 +75,17 @@ function CollapsibleSection({ section, defaultOpen = false }: { section: string;
       {isOpen && (
         <div className="p-6 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="markdown-body prose prose-indigo prose-sm max-w-none">
-            <ReactMarkdown>{body}</ReactMarkdown>
+            <ReactMarkdown
+              components={{
+                table: ({ children }) => <ProfessionalTable>{children}</ProfessionalTable>,
+                thead: ({ children }) => <thead className="bg-gray-50/50">{children}</thead>,
+                th: ({ children }) => <th className="px-6 py-4 text-[11px] font-bold text-indigo-600 uppercase tracking-widest text-left">{children}</th>,
+                tr: ({ children }) => <tr className="group hover:bg-indigo-50/20 transition-colors border-b border-gray-100 last:border-0">{children}</tr>,
+                td: ({ children }) => <td className="px-6 py-4 text-sm text-gray-700 font-medium">{children}</td>,
+              }}
+            >
+              {body}
+            </ReactMarkdown>
           </div>
         </div>
       )}

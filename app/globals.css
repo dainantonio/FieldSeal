@@ -54,31 +54,11 @@ body {
   margin-bottom: 1.25rem;
 }
 
+/* Table styles are now handled by ProfessionalTable component */
 .markdown-body table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
-  font-size: 0.875rem;
-}
-
-.markdown-body th {
-  text-align: left;
-  padding: 0.75rem;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.75rem;
-}
-
-.markdown-body td {
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.markdown-body tr:last-child td {
-  border-bottom: none;
 }
 
 .markdown-body ul {
