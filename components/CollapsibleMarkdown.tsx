@@ -11,11 +11,8 @@ interface CollapsibleMarkdownProps {
 }
 
 /**
- * Robustly pre-processes markdown to fix table rendering issues.
- * This is more aggressive than previous versions:
- * 1. Fixes double pipes (||)
- * 2. Ensures table headers have a separator row if missing
- * 3. Adds required empty lines before and after table blocks
+ * Pre-processes markdown to fix table rendering issues.
+ * Fixes double pipes, ensures separator rows, and adds blank lines around tables.
  */
 const robustPreprocess = (text: string): string => {
   if (!text) return text;
@@ -26,17 +23,12 @@ const robustPreprocess = (text: string): string => {
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
     
-    // Fix double pipes
     if (line.includes('|')) {
       line = line.replace(/\|\|/g, '|');
       
-      // Ensure row starts and ends with a pipe
-      if (line.includes('|')) {
-        if (!line.startsWith('|')) line = '| ' + line;
-        if (!line.endsWith('|')) line = line + ' |';
-      }
+      if (!line.startsWith('|')) line = '| ' + line;
+      if (!line.endsWith('|')) line = line + ' |';
       
-      // If this is a header row and the next row isn't a separator, inject one
       const isHeaderCandidate = line.includes('|') && !line.includes('---');
       const nextLine = lines[i + 1]?.trim() || '';
       const isNextSeparator = nextLine.includes('|') && nextLine.includes('---');
@@ -44,7 +36,6 @@ const robustPreprocess = (text: string): string => {
       processedLines.push(line);
       
       if (isHeaderCandidate && !isNextSeparator && nextLine.includes('|')) {
-        // Create a separator based on column count
         const colCount = (line.match(/\|/g) || []).length - 1;
         const separator = '|' + Array(colCount).fill(' --- |').join('');
         processedLines.push(separator);
@@ -54,7 +45,6 @@ const robustPreprocess = (text: string): string => {
     }
   }
   
-  // Join and ensure empty lines around table blocks (lines starting with |)
   let result = '';
   for (let i = 0; i < processedLines.length; i++) {
     const curr = processedLines[i];
@@ -73,16 +63,11 @@ const robustPreprocess = (text: string): string => {
   return result;
 };
 
-// Define markdown components outside to avoid scope issues
 const getMarkdownComponents = () => ({
   table: ({ children }: any) => <ProfessionalTable>{children}</ProfessionalTable>,
   thead: ({ children }: any) => <TableHeader>{children}</TableHeader>,
   tbody: ({ children }: any) => <tbody>{children}</tbody>,
-  th: ({ children }: any) => {
-    const text = String(children).toLowerCase();
-    const isPrice = text.includes('fee') || text.includes('rate') || text.includes('price') || text.includes('amount');
-    return <TableHead>{children}</TableHead>;
-  },
+  th: ({ children }: any) => <TableHead>{children}</TableHead>,
   tr: ({ children }: any) => <TableRow>{children}</TableRow>,
   td: ({ children }: any) => {
     const content = String(children).trim();
@@ -99,10 +84,7 @@ export default function CollapsibleMarkdown({ content }: CollapsibleMarkdownProp
   if (sections.length <= 1) {
     return (
       <div className="markdown-body prose prose-indigo prose-sm max-w-none">
-        <ReactMarkdown 
-          remarkPlugins={[remarkGfm]} 
-          components={markdownComponents}
-        >
+        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
           {processedContent}
         </ReactMarkdown>
       </div>
@@ -110,21 +92,18 @@ export default function CollapsibleMarkdown({ content }: CollapsibleMarkdownProp
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {sections.map((section, index) => {
         if (index === 0 && !section.startsWith('### ')) {
           return (
-            <div key={index} className="markdown-body prose prose-indigo prose-sm max-w-none mb-6">
-              <ReactMarkdown 
-                remarkPlugins={[remarkGfm]} 
-                components={markdownComponents}
-              >
+            <div key={index} className="markdown-body prose prose-indigo prose-sm max-w-none mb-4 sm:mb-6">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                 {section}
               </ReactMarkdown>
             </div>
           );
         }
-        return <CollapsibleSection key={index} section={section} defaultOpen={index === 0} />;
+        return <CollapsibleSection key={index} section={section} defaultOpen={index === 0 || (index === 1 && sections[0].startsWith('### '))} />;
       })}
     </div>
   );
@@ -141,26 +120,28 @@ function CollapsibleSection({ section, defaultOpen = false }: { section: string;
   if (!title) return null;
 
   return (
-    <div className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-sm transition-all hover:border-indigo-200">
+    <div className="border border-gray-100 rounded-xl sm:rounded-2xl overflow-hidden bg-white shadow-sm transition-all hover:border-indigo-200">
+      {/* Collapsible trigger — full-width tap target */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 text-left bg-gray-50/50 hover:bg-indigo-50/30 transition-colors group"
+        className="w-full flex items-center justify-between px-4 py-3.5 sm:p-4 text-left bg-gray-50/50 hover:bg-indigo-50/30 transition-colors group min-h-[52px]"
+        aria-expanded={isOpen}
       >
-        <span className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+        <span className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors leading-snug pr-2">
           {title}
         </span>
-        <div className="text-gray-400 group-hover:text-indigo-500 transition-colors">
-          {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+        <div className="text-gray-400 group-hover:text-indigo-500 transition-colors flex-shrink-0">
+          {isOpen 
+            ? <ChevronDown size={18} /> 
+            : <ChevronRight size={18} />
+          }
         </div>
       </button>
       
       {isOpen && (
-        <div className="p-6 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="px-4 py-4 sm:p-6 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="markdown-body prose prose-indigo prose-sm max-w-none">
-            <ReactMarkdown 
-              remarkPlugins={[remarkGfm]} 
-              components={markdownComponents}
-            >
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
               {body}
             </ReactMarkdown>
           </div>
