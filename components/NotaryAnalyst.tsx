@@ -48,19 +48,6 @@ interface Source {
   state?: string;
 }
 
-interface MarkdownTableBlock {
-  type: 'table';
-  headers: string[];
-  rows: string[][];
-}
-
-interface MarkdownTextBlock {
-  type: 'markdown';
-  content: string;
-}
-
-type MarkdownBlock = MarkdownTableBlock | MarkdownTextBlock;
-
 export default function NotaryAnalyst() {
   const [query, setQuery] = useState('');
   const [selectedStates, setSelectedStates] = useState<string[]>([]);
@@ -112,33 +99,18 @@ export default function NotaryAnalyst() {
     setSources([]);
 
     try {
-      const searchParams = new URLSearchParams({
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is not configured in environment variables.');
+      }
+
+      const { queryGemini } = await import('@/lib/gemini');
+      const data = await queryGemini({
         query: activeQuery,
+        selectedStates,
+        overrideUrl: overrideUrl || undefined,
+        apiKey,
       });
-
-      if (selectedStates.length > 0) {
-        searchParams.set('states', selectedStates.join(','));
-      }
-
-      if (overrideUrl) {
-        searchParams.set('overrideUrl', overrideUrl);
-      }
-
-      const response = await fetch(`/api/notary-query?${searchParams.toString()}`, {
-        method: 'GET',
-      });
-      const rawResponse = await response.text();
-
-      let data: { answer?: string; error?: string; sources?: Array<{ title: string; uri: string }> };
-      try {
-        data = JSON.parse(rawResponse);
-      } catch {
-        throw new Error('The notary query endpoint returned an invalid response. Please verify the deployment supports /api routes.');
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to retrieve answer. Please try again.');
-      }
 
       setAnswer(data.answer || 'No answer generated.');
 
@@ -290,46 +262,20 @@ export default function NotaryAnalyst() {
               </button>
             </div>
 
-            {/* Legislative Override Input */}
-            <div className={`flex flex-col gap-1`}>
-              <div className={`flex items-center gap-3 p-4 bg-indigo-50/50 rounded-2xl border ${urlError ? 'border-red-300 ring-4 ring-red-500/10' : 'border-indigo-100/50'} group transition-all`}>
-                <div className="flex-shrink-0 w-8 h-8 bg-white rounded-lg flex items-center justify-center text-indigo-600 shadow-sm">
-                  <Gavel size={14} />
-                </div>
-                <div className="flex-1">
-                  <input 
-                    type="url"
-                    placeholder="Legislative Update URL (Optional: .gov or .state link to override search)"
-                    className="w-full bg-transparent text-xs font-medium focus:outline-none placeholder:text-indigo-300 text-indigo-900"
-                    value={overrideUrl}
-                    onChange={(e) => {
-                      setOverrideUrl(e.target.value);
-                      if (urlError) setUrlError(null);
-                    }}
-                  />
-                </div>
-                {overrideUrl && (
-                  <button 
-                    onClick={() => {
-                      setOverrideUrl('');
-                      setUrlError(null);
-                    }}
-                    className="text-[10px] font-bold text-indigo-400 hover:text-indigo-600 uppercase tracking-tighter"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              {urlError && (
-                <p className="px-4 text-[10px] font-bold text-red-500 uppercase tracking-tight animate-in fade-in slide-in-from-top-1">
-                  {urlError}
-                </p>
-              )}
-              {!urlError && (
-                <p className="px-4 text-[10px] font-medium text-indigo-500 tracking-tight">
-                  Tip: paste the exact statute or bill URL if you want the answer pinned to a recent legislative update.
-                </p>
-              )}
+            {/* Legislative Override */}
+            <div className="flex items-center gap-3 px-4 py-3 border-t border-gray-50">
+              <Gavel size={14} className="text-gray-400" />
+              <input 
+                type="url"
+                placeholder="Optional: Override with specific legislative URL (.gov)"
+                className="flex-1 bg-transparent text-xs font-medium focus:outline-none placeholder:text-gray-300 text-gray-600"
+                value={overrideUrl}
+                onChange={(e) => {
+                  setOverrideUrl(e.target.value);
+                  if (urlError) setUrlError(null);
+                }}
+              />
+              {urlError && <span className="text-[10px] font-bold text-red-500 uppercase">{urlError}</span>}
             </div>
           </div>
 
@@ -382,14 +328,14 @@ export default function NotaryAnalyst() {
                   </div>
                 </div>
                 
-                <div className="markdown-body prose prose-indigo prose-sm max-w-none">
-                  <StructuredMarkdown content={answer} />
+                <div className="markdown-body">
+                  <CollapsibleMarkdown content={answer} />
                 </div>
               </div>
 
               {/* Sources Section */}
               {sources.length > 0 && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                <div className="space-y-8">
                   <div className="flex items-center gap-4 px-4">
                     <div className="h-px flex-1 bg-gray-100"></div>
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400">
@@ -428,187 +374,16 @@ export default function NotaryAnalyst() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 p-6 text-center">
-        <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Grounded in Official State Notary Laws // Not Legal Advice</p>
-      </footer>
-    </div>
-  );
-}
-
-function StructuredMarkdown({ content }: { content: string }) {
-  const blocks = parseMarkdownBlocks(content);
-
-  return (
-    <>
-      {blocks.map((block, index) => {
-        if (block.type === 'table') {
-          return (
-            <div key={`table-${index}`} className="markdown-table-wrap not-prose">
-              <table className="markdown-table">
-                <thead>
-                  <tr>
-                    {block.headers.map((header, headerIndex) => (
-                      <th key={`header-${headerIndex}`}>{header}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {block.rows.map((row, rowIndex) => (
-                    <tr key={`row-${rowIndex}`}>
-                      {row.map((cell, cellIndex) => (
-                        <td key={`cell-${rowIndex}-${cellIndex}`}>{cell}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          );
-        }
-
-        return <ReactMarkdown key={`markdown-${index}`}>{block.content}</ReactMarkdown>;
-      })}
-    </>
-  );
-}
-
-function parseMarkdownBlocks(content: string): MarkdownBlock[] {
-  const lines = content.split('\n');
-  const blocks: MarkdownBlock[] = [];
-  let textBuffer: string[] = [];
-
-  const flushTextBuffer = () => {
-    const trimmed = textBuffer.join('\n').trim();
-    if (trimmed) {
-      blocks.push({ type: 'markdown', content: trimmed });
-    }
-    textBuffer = [];
-  };
-
-  let i = 0;
-  while (i < lines.length) {
-    if (isTableStart(lines, i)) {
-      flushTextBuffer();
-
-      const tableLines = [lines[i], lines[i + 1]];
-      i += 2;
-
-      while (i < lines.length && looksLikeTableRow(lines[i])) {
-        tableLines.push(lines[i]);
-        i += 1;
-      }
-
-      const table = parseMarkdownTable(tableLines);
-      if (table) {
-        blocks.push(table);
-      } else {
-        textBuffer.push(...tableLines);
-      }
-      continue;
-    }
-
-    textBuffer.push(lines[i]);
-    i += 1;
-  }
-
-  flushTextBuffer();
-  return blocks;
-}
-
-function isTableStart(lines: string[], index: number) {
-  if (index + 1 >= lines.length) return false;
-  return looksLikeTableRow(lines[index]) && isSeparatorRow(lines[index + 1]);
-}
-
-function looksLikeTableRow(line: string) {
-  const trimmed = line.trim();
-  if (!trimmed.includes('|')) return false;
-  return trimmed.startsWith('|') || trimmed.endsWith('|');
-}
-
-function isSeparatorRow(line: string) {
-  const trimmed = line.trim();
-  return /^[\s|:-]+$/.test(trimmed) && trimmed.includes('-');
-}
-
-function parseMarkdownTable(lines: string[]): MarkdownTableBlock | null {
-  if (lines.length < 2) return null;
-
-  const headers = splitMarkdownRow(lines[0]);
-  const rows = lines.slice(2).map(splitMarkdownRow);
-
-  if (headers.length === 0 || rows.some((row) => row.length === 0)) {
-    return null;
-  }
-
-  const columnCount = headers.length;
-  const normalizedRows = rows.map((row) => {
-    if (row.length < columnCount) {
-      return [...row, ...Array(columnCount - row.length).fill('')];
-    }
-
-    return row.slice(0, columnCount);
-  });
-
-  return {
-    type: 'table',
-    headers,
-    rows: normalizedRows,
-  };
-}
-
-function splitMarkdownRow(row: string) {
-  return row
-    .trim()
-    .replace(/^\|/, '')
-    .replace(/\|$/, '')
-    .split('|')
-    .map((cell) => cell.trim());
-}
-
-function SourceCard({ source }: { source: Source }) {
-  const [copied, setCopied] = useState(false);
-  const isGov = source.uri.includes('.gov');
-
-  const handleCopy = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    navigator.clipboard.writeText(source.uri);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <a 
-      href={source.uri}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group relative flex items-start gap-5 p-5 bg-white rounded-[2rem] border border-gray-100 hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-500"
-    >
-      <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${
-        isGov 
-          ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white' 
-          : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'
-      }`}>
-        {isGov ? <Gavel size={20} /> : <FileText size={20} />}
-      </div>
-      
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center flex-wrap gap-2 mb-1.5">
-          <p className="text-sm font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
-            {source.title}
-          </p>
-          {isGov && (
-            <span className="flex-shrink-0 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-bold uppercase tracking-wider rounded-full border border-emerald-100">
-              Official Gov Source
-            </span>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-gray-500 transition-colors">
-            <Globe size={10} />
-            <p className="text-[10px] font-mono truncate max-w-[180px] md:max-w-xs">{source.uri}</p>
+      <footer className="border-t border-gray-100 bg-white py-8 px-6">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2 text-gray-400">
+            <Scale size={14} />
+            <span className="text-[10px] font-bold uppercase tracking-widest">FieldSeal © 2026</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-indigo-600 transition-colors">Statutes</a>
+            <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-indigo-600 transition-colors">Compliance</a>
+            <a href="#" className="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-indigo-600 transition-colors">Support</a>
           </div>
         </div>
       </footer>
