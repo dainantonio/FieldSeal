@@ -12,11 +12,42 @@ interface CollapsibleMarkdownProps {
 // Define markdown components outside to avoid scope issues
 const getMarkdownComponents = () => ({
   table: ({ children }: any) => <ProfessionalTable>{children}</ProfessionalTable>,
-  thead: ({ children }: any) => <thead className="bg-slate-700 text-white">{children}</thead>,
+  thead: ({ children }: any) => <thead className="bg-[#3f4b8c] text-white">{children}</thead>,
   tbody: ({ children }: any) => <tbody>{children}</tbody>,
-  th: ({ children }: any) => <th className="px-6 py-4 text-sm font-bold text-white text-left">{children}</th>,
-  tr: ({ children }: any) => <tr className="border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors">{children}</tr>,
-  td: ({ children }: any) => <td className="px-6 py-4 text-sm text-gray-900 font-medium">{children}</td>,
+  th: ({ children }: any) => {
+    // Determine if it's the last column (usually Fee) to align right
+    const isLast = (children: any) => {
+      // This is a heuristic, in markdown-react children is usually the text content
+      const text = String(children).toLowerCase();
+      return text.includes('fee') || text.includes('rate') || text.includes('price');
+    };
+    
+    return (
+      <th className={`px-6 py-5 text-sm font-bold text-white uppercase tracking-wider ${isLast(children) ? 'text-right' : 'text-left'}`}>
+        {children}
+      </th>
+    );
+  },
+  tr: ({ children }: any) => (
+    <tr className="border-b border-gray-100 last:border-0 odd:bg-white even:bg-[#f8faff] hover:bg-indigo-50/50 transition-colors">
+      {children}
+    </tr>
+  ),
+  td: ({ children }: any) => {
+    // Heuristic for price: starts with $ or is a number with 2 decimals
+    const isPrice = (content: any) => {
+      if (typeof content !== 'string') return false;
+      return content.trim().startsWith('$') || /^\d+\.\d{2}$/.test(content.trim());
+    };
+    
+    const price = isPrice(children);
+    
+    return (
+      <td className={`px-6 py-5 text-sm ${price ? 'text-right font-bold text-gray-900' : 'text-gray-700 font-medium'} leading-relaxed`}>
+        {children}
+      </td>
+    );
+  },
 });
 
 export default function CollapsibleMarkdown({ content }: CollapsibleMarkdownProps) {

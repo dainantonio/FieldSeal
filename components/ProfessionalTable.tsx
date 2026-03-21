@@ -44,31 +44,31 @@ export default function ProfessionalTable({ children }: ProfessionalTableProps) 
     <div className="my-8 pro-table-container animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-lg">
         {/* Table Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center text-white">
-              <TableIcon size={20} />
+        <div className="bg-white border-b border-gray-100 px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-[#3f4b8c] rounded-xl flex items-center justify-center text-white shadow-inner">
+              <TableIcon size={24} />
             </div>
             <div>
-              <h4 className="text-base font-bold text-gray-900">Fee Schedule</h4>
-              <p className="text-xs text-gray-500 font-medium">Official Statutory Rates</p>
+              <h4 className="text-xl font-bold text-gray-900 tracking-tight">Fee Schedule</h4>
+              <p className="text-sm text-gray-500 font-medium">Official Statutory Rates</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handleCopy}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm active:scale-95"
               title="Copy to clipboard"
             >
-              {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+              {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} className="text-gray-400" />}
               {copied ? 'Copied!' : 'Copy Table'}
             </button>
             <button
               onClick={handleDownloadCSV}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm active:scale-95"
               title="Download CSV"
             >
-              <Download size={16} />
+              <Download size={16} className="text-gray-400" />
               Download CSV
             </button>
           </div>
@@ -82,9 +82,9 @@ export default function ProfessionalTable({ children }: ProfessionalTableProps) 
         </div>
 
         {/* Table Footer */}
-        <div className="bg-white px-6 py-3 border-t border-gray-200">
-          <p className="text-xs text-gray-600 italic">
-            <span className="font-semibold">Note:</span> Fees listed are the maximum allowed by state law. Notaries may choose to charge less.
+        <div className="bg-gray-50/50 px-6 py-4 border-t border-gray-100">
+          <p className="text-sm text-gray-600 italic">
+            <span className="font-bold not-italic text-gray-900">Note:</span> Fees listed are the maximum allowed by state law. Notaries may choose to charge less.
           </p>
         </div>
       </div>
@@ -94,7 +94,7 @@ export default function ProfessionalTable({ children }: ProfessionalTableProps) 
 
 // Custom sub-components for table elements to ensure consistent styling
 export const TableHeader = ({ children }: { children: React.ReactNode }) => (
-  <thead className="bg-slate-700 text-white">
+  <thead className="bg-[#3f4b8c] text-white">
     {children}
   </thead>
 );
@@ -102,26 +102,28 @@ export const TableHeader = ({ children }: { children: React.ReactNode }) => (
 export const TableRow = ({ children, isHeader }: { children: React.ReactNode; isHeader?: boolean }) => {
   if (isHeader) {
     return (
-      <tr className="bg-slate-700 text-white">
+      <tr className="bg-[#3f4b8c] text-white">
         {children}
       </tr>
     );
   }
   return (
-    <tr className="border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors">
+    <tr className="border-b border-gray-100 last:border-0 odd:bg-white even:bg-[#f8faff] hover:bg-indigo-50/50 transition-colors group">
       {children}
     </tr>
   );
 };
 
 export const TableHead = ({ children }: { children: React.ReactNode }) => (
-  <th className="px-6 py-4 text-sm font-bold text-white text-left">
-    {children}
+  <th className="px-6 py-4 text-sm font-bold text-white uppercase tracking-wider first:rounded-tl-none last:rounded-tr-none">
+    <div className="flex items-center justify-between">
+      {children}
+    </div>
   </th>
 );
 
-export const TableCell = ({ children }: { children: React.ReactNode }) => (
-  <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+export const TableCell = ({ children, isPrice }: { children: React.ReactNode; isPrice?: boolean }) => (
+  <td className={`px-6 py-5 text-sm ${isPrice ? 'text-right font-bold text-gray-900' : 'text-gray-700 font-medium'} leading-relaxed`}>
     {children}
   </td>
 );
