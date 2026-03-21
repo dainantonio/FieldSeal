@@ -9,22 +9,25 @@ interface CollapsibleMarkdownProps {
   content: string;
 }
 
+// Define markdown components outside to avoid scope issues
+const getMarkdownComponents = () => ({
+  table: ({ children }: any) => <ProfessionalTable>{children}</ProfessionalTable>,
+  thead: ({ children }: any) => <thead>{children}</thead>,
+  tbody: ({ children }: any) => <tbody>{children}</tbody>,
+  th: ({ children }: any) => <th className="px-6 py-4 text-[11px] font-bold text-indigo-600 uppercase tracking-widest text-left">{children}</th>,
+  tr: ({ children }: any) => <tr className="group hover:bg-indigo-50/20 transition-colors border-b border-gray-100 last:border-0">{children}</tr>,
+  td: ({ children }: any) => <td className="px-6 py-4 text-sm text-gray-700 font-medium">{children}</td>,
+});
+
 export default function CollapsibleMarkdown({ content }: CollapsibleMarkdownProps) {
   // Split content by H3 headers (###)
   const sections = content.split(/(?=### )/g);
+  const markdownComponents = getMarkdownComponents();
 
   if (sections.length <= 1) {
     return (
       <div className="markdown-body prose prose-indigo prose-sm max-w-none">
-        <ReactMarkdown
-          components={{
-            table: ({ children }) => <ProfessionalTable>{children}</ProfessionalTable>,
-            thead: ({ children }) => <thead className="bg-gray-50/50">{children}</thead>,
-            th: ({ children }) => <th className="px-6 py-4 text-[11px] font-bold text-indigo-600 uppercase tracking-widest text-left">{children}</th>,
-            tr: ({ children }) => <tr className="group hover:bg-indigo-50/20 transition-colors border-b border-gray-100 last:border-0">{children}</tr>,
-            td: ({ children }) => <td className="px-6 py-4 text-sm text-gray-700 font-medium">{children}</td>,
-          }}
-        >
+        <ReactMarkdown components={markdownComponents}>
           {content}
         </ReactMarkdown>
       </div>
@@ -38,7 +41,7 @@ export default function CollapsibleMarkdown({ content }: CollapsibleMarkdownProp
         if (index === 0 && !section.startsWith('### ')) {
           return (
             <div key={index} className="markdown-body prose prose-indigo prose-sm max-w-none mb-6">
-              <ReactMarkdown>{section}</ReactMarkdown>
+              <ReactMarkdown components={markdownComponents}>{section}</ReactMarkdown>
             </div>
           );
         }
@@ -50,6 +53,7 @@ export default function CollapsibleMarkdown({ content }: CollapsibleMarkdownProp
 
 function CollapsibleSection({ section, defaultOpen = false }: { section: string; defaultOpen?: boolean }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const markdownComponents = getMarkdownComponents();
   
   // Extract title from the first line (removing ### )
   const lines = section.split('\n');
@@ -75,15 +79,7 @@ function CollapsibleSection({ section, defaultOpen = false }: { section: string;
       {isOpen && (
         <div className="p-6 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="markdown-body prose prose-indigo prose-sm max-w-none">
-            <ReactMarkdown
-              components={{
-                table: ({ children }) => <ProfessionalTable>{children}</ProfessionalTable>,
-                thead: ({ children }) => <thead className="bg-gray-50/50">{children}</thead>,
-                th: ({ children }) => <th className="px-6 py-4 text-[11px] font-bold text-indigo-600 uppercase tracking-widest text-left">{children}</th>,
-                tr: ({ children }) => <tr className="group hover:bg-indigo-50/20 transition-colors border-b border-gray-100 last:border-0">{children}</tr>,
-                td: ({ children }) => <td className="px-6 py-4 text-sm text-gray-700 font-medium">{children}</td>,
-              }}
-            >
+            <ReactMarkdown components={markdownComponents}>
               {body}
             </ReactMarkdown>
           </div>
