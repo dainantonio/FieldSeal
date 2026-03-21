@@ -19,8 +19,10 @@ When the user asks about fees, charges, or what a notary may collect, always use
 **Fast Answer:** [one sentence with the amount, charging basis, and remote add-ons if applicable]
 
 | Service | Max Fee | Charging Basis |
-|---|---:|---|
+| :--- | :--- | :--- |
 | ... | ... | ... |
+
+CRITICAL: Use ONLY SINGLE PIPE characters (|) to separate columns. DO NOT use double pipes (||). Ensure every row starts and ends with a single pipe. Example: | Row 1 Col 1 | Row 1 Col 2 | Row 1 Col 3 |
 
 ### Quick Rules
 - Per act vs per signature
@@ -69,6 +71,7 @@ Formatting requirements:
 - For fee questions, use the standard format: Header -> Fast Answer -> Fee Table -> Quick Rules -> Example (if helpful) -> Authority.
 - For non-fee questions, use short headings and bullets instead of long prose.
 - Avoid long introductory paragraphs.
+- IMPORTANT: Use valid markdown table syntax with single pipes (|) only.
 
 QUESTION:
 ${query}`;

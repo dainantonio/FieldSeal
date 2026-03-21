@@ -9,6 +9,35 @@ interface CollapsibleMarkdownProps {
   content: string;
 }
 
+/**
+ * Pre-processes markdown content to fix common table rendering issues:
+ * 1. Converts double pipes (||) to single pipes (|)
+ * 2. Ensures table rows have consistent pipe separators
+ * 3. Trims whitespace around pipes for cleaner markdown
+ */
+const preprocessMarkdown = (text: string): string => {
+  if (!text) return text;
+  
+  return text.split('\n').map(line => {
+    // Check if the line looks like a table row (contains pipes)
+    if (line.includes('|')) {
+      // 1. Replace double pipes with single pipes
+      let fixedLine = line.replace(/\|\|/g, '|');
+      
+      // 2. Ensure the line starts and ends with a pipe if it's a table row
+      // We check if it has multiple pipes to avoid adding pipes to decorative lines
+      const pipeCount = (fixedLine.match(/\|/g) || []).length;
+      if (pipeCount >= 2) {
+        fixedLine = fixedLine.trim();
+        if (!fixedLine.startsWith('|')) fixedLine = '| ' + fixedLine;
+        if (!fixedLine.endsWith('|')) fixedLine = fixedLine + ' |';
+      }
+      return fixedLine;
+    }
+    return line;
+  }).join('\n');
+};
+
 // Define markdown components outside to avoid scope issues
 const getMarkdownComponents = () => ({
   table: ({ children }: any) => <ProfessionalTable>{children}</ProfessionalTable>,
@@ -17,9 +46,8 @@ const getMarkdownComponents = () => ({
   th: ({ children }: any) => {
     // Determine if it's the last column (usually Fee) to align right
     const isLast = (children: any) => {
-      // This is a heuristic, in markdown-react children is usually the text content
       const text = String(children).toLowerCase();
-      return text.includes('fee') || text.includes('rate') || text.includes('price');
+      return text.includes('fee') || text.includes('rate') || text.includes('price') || text.includes('amount');
     };
     
     return (
@@ -37,7 +65,8 @@ const getMarkdownComponents = () => ({
     // Heuristic for price: starts with $ or is a number with 2 decimals
     const isPrice = (content: any) => {
       if (typeof content !== 'string') return false;
-      return content.trim().startsWith('$') || /^\d+\.\d{2}$/.test(content.trim());
+      const trimmed = content.trim();
+      return trimmed.startsWith('$') || /^\d+\.\d{2}$/.test(trimmed);
     };
     
     const price = isPrice(children);
@@ -51,15 +80,18 @@ const getMarkdownComponents = () => ({
 });
 
 export default function CollapsibleMarkdown({ content }: CollapsibleMarkdownProps) {
+  // Pre-process the content to fix table issues
+  const processedContent = preprocessMarkdown(content);
+  
   // Split content by H3 headers (###)
-  const sections = content.split(/(?=### )/g);
+  const sections = processedContent.split(/(?=### )/g);
   const markdownComponents = getMarkdownComponents();
 
   if (sections.length <= 1) {
     return (
       <div className="markdown-body prose prose-indigo prose-sm max-w-none">
         <ReactMarkdown components={markdownComponents}>
-          {content}
+          {processedContent}
         </ReactMarkdown>
       </div>
     );
