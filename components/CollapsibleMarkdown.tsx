@@ -12,11 +12,11 @@ interface CollapsibleMarkdownProps {
 // Define markdown components outside to avoid scope issues
 const getMarkdownComponents = () => ({
   table: ({ children }: any) => <ProfessionalTable>{children}</ProfessionalTable>,
-  thead: ({ children }: any) => <thead>{children}</thead>,
+  thead: ({ children }: any) => <thead className="bg-slate-700 text-white">{children}</thead>,
   tbody: ({ children }: any) => <tbody>{children}</tbody>,
-  th: ({ children }: any) => <th className="px-6 py-4 text-[11px] font-bold text-indigo-600 uppercase tracking-widest text-left">{children}</th>,
-  tr: ({ children }: any) => <tr className="group hover:bg-indigo-50/20 transition-colors border-b border-gray-100 last:border-0">{children}</tr>,
-  td: ({ children }: any) => <td className="px-6 py-4 text-sm text-gray-700 font-medium">{children}</td>,
+  th: ({ children }: any) => <th className="px-6 py-4 text-sm font-bold text-white text-left">{children}</th>,
+  tr: ({ children }: any) => <tr className="border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors">{children}</tr>,
+  td: ({ children }: any) => <td className="px-6 py-4 text-sm text-gray-900 font-medium">{children}</td>,
 });
 
 export default function CollapsibleMarkdown({ content }: CollapsibleMarkdownProps) {
